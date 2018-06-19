@@ -9,16 +9,16 @@ typedef struct
 	const char* json;
 }json_context;
 
-// ws = *(%x20 / %x09 / %x0A / %x0D
+/* ws = *(%x20 / %x09 / %x0A / %x0D */
 static void json_parse_whitespace(json_context* c)
 {
 	const char *p = c->json;
-	while (*p == ' '|| *p == 't' || *p == '\n' || *p == '\r')
+	while (*p == ' '|| *p == '\t' || *p == '\n' || *p == '\r')
 		p++;
 	c->json = p;
 }
 
-//null -> "null"
+/* null -> "null" */
 static int json_parse_null(json_context* c, json_value* v)
 {
 	EXPECT(c, 'n');
@@ -30,19 +30,19 @@ static int json_parse_null(json_context* c, json_value* v)
 	return JSON_PARSE_OK;
 }
 
-//t -> true
+/* t -> true */
 static int json_parse_true(json_context* c, json_value* v)
 {
-	EXPECT(c, 't');
-	if (c->json[0] != 'r' || c->json[1] != 'u' || c->json[2] != 'e')
-		return JSON_PARSE_INVALID_VALUE;
+    EXPECT(c, 't');
+    if (c->json[0] != 'r' || c->json[1] != 'u' || c->json[2] != 'e')
+        return JSON_PARSE_INVALID_VALUE;
 
-	c->json += 3;
-	v->type = JSON_TRUE;
-	return JSON_PARSE_OK;
+    c->json += 3;
+    v->type = JSON_TRUE;
+    return JSON_PARSE_OK;
 }
 
-//f -> false
+/* f -> false */
 static int json_parse_false(json_context* c, json_value* v)
 {
 	EXPECT(c, 'f');
@@ -72,10 +72,28 @@ static int json_parse_value(json_context* c, json_value* v)
 
 int json_parse(json_value* v, const char* json)
 {
-	json_context c;
 	assert(v != NULL);
+
+	int ret;
+	json_context c;
 	c.json = json;
-	v->type = JSON_NULL;	//解析失败即为null，因此先初始化为null
+
+	/* 解析失败即为null，因此先初始化为null */
+	v->type = JSON_NULL;	
+
 	json_parse_whitespace(&c);
-	return json_parse_value(&c, v);
+	if ((ret = json_parse_value(&c, v)) == JSON_PARSE_OK) {
+		json_parse_whitespace(&c);	
+		
+		if (*c.json != '\0')
+			ret = JSON_PARSE_ROOT_NOT_SINGULAR;
+	}
+
+	return ret; 
+}
+
+json_type json_get_type(const json_value* v)
+{
+	assert(v != NULL);
+	return v->type;
 }
