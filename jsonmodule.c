@@ -1,6 +1,6 @@
 #include "jsonmodule.h"
 #include <assert.h> /* assert() */
-#include <stdlib.h> /* NULL */
+#include <stdlib.h> /* NULL, strtod() */
 
 #define EXPECT(c, ch) do { assert(*c->json == (ch)); c->json++;} while(0);
 
@@ -54,6 +54,21 @@ static int json_parse_false(json_context* c, json_value* v)
 	return JSON_PARSE_OK;
 }
 
+/* double ->number */
+static int json_parse_number(json_context* c, json_value* v)
+{
+	char* end;
+	v->n = strtod(c->json, &end);
+	if (c->json == end)
+		return JSON_PARSE_INVALID_VALUE;
+
+	c->json = end;
+	v->type = JSON_NUMBER;
+	return JSON_PARSE_OK;
+
+}
+
+/* value = null / false / true / number */
 static int json_parse_value(json_context* c, json_value* v)
 {
 	switch (*c->json) {
@@ -66,7 +81,7 @@ static int json_parse_value(json_context* c, json_value* v)
 		case '\0':
 			return JSON_PARSE_EXPECT_VALUE;
 		default:
-			return JSON_PARSE_INVALID_VALUE;
+			return json_parse_number(c, v);
 	}
 }
 
@@ -96,4 +111,10 @@ json_type json_get_type(const json_value* v)
 {
 	assert(v != NULL);
 	return v->type;
+}
+
+double json_get_number(const json_value* v)
+{
+	assert(v != NULL &&  v->type == JSON_NUMBER);
+	return v->n;
 }

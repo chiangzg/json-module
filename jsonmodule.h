@@ -14,6 +14,7 @@ typedef enum {
 
 /* json数据结构 */
 typedef struct {
+	double n;
 	json_type type;
 } json_value;
 
@@ -23,7 +24,8 @@ enum {
 	JSON_PARSE_OK = 0,
 	JSON_PARSE_EXPECT_VALUE,
 	JSON_PARSE_INVALID_VALUE,
-	JSON_PARSE_ROOT_NOT_SINGULAR
+	JSON_PARSE_ROOT_NOT_SINGULAR,
+	JSON_PARSE_NUMBER_TOO_BIG
 };
 
 /* 解析json */
@@ -31,7 +33,11 @@ int json_parse(json_value* v, const char* json);
 
 /* 获取类型 */
 json_type json_get_type(const json_value* v);
-#endif
+
+/* double */
+double json_get_number(const json_value* v);
+
+
 
 /*
  	json语法子集:
@@ -43,3 +49,4 @@ json_type json_get_type(const json_value* v);
 	false = "false"
 	true  = "true"
 */
+#endif
